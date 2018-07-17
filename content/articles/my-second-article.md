@@ -1,21 +1,7 @@
-+++
-Author = "Peter Simmons"
-Description = ""
-resources = []
-slug = ""
-
-+++
+---
+title: "Hello world 1"
+date: 2018-07-17T08:53:19+01:00
+draft: false
+---
 
 [Lorem ipsum](http://www.lipsum.com/) dolor sit amet, consectetur adipiscing elit.
-
-{{<highlight js>}}
-
-var foo = "English men"
-var bar = "bar"
-
-function getJoke(foo, bar) {
-    return
-        "two " + foo + " walk into a " + bar
-}
-
-{{</highlight>}}

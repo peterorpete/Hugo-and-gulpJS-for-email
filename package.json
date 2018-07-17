@@ -10,10 +10,17 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "browser-sync": "^2.24.5",
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
+    "gulp": "github:gulpjs/gulp#4.0",
     "gulp-autoprefixer": "^5.0.0",
     "gulp-hash": "^4.2.2",
-    "gulp-sass": "^4.0.1"
+    "gulp-inline-css": "^3.3.0",
+    "gulp-postcss": "^7.0.1",
+    "gulp-sass": "^4.0.1",
+    "gulp-uglify": "^3.0.0"
+  },
+  "dependencies": {
+    "postcss-scss": "^2.0.0"
   }
 }

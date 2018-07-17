@@ -1,71 +1,103 @@
-var gulp         = require("gulp"),
-    sass         = require("gulp-sass"),
-    autoprefixer = require("gulp-autoprefixer"),
-    hash         = require("gulp-hash"),
-    del          = require("del")
+// http://danbahrami.io/articles/building-a-production-website-with-hugo-and-gulp-js/
+// https://blog.khophi.co/migrate-gulp-4-complete-example/
+// https://github.com/Dragory/gulp-hash
+
+var browser = require('browser-sync').create();
+var gulp = require('gulp');
+var sass = require('gulp-sass');
+var hash = require('gulp-hash');
+var uglify = require('gulp-uglify');
+var del = require('del');
+var postcss = require('gulp-postcss');
+var autoprefixer = require('autoprefixer');
+var inlineCss = require('gulp-inline-css');
+var postcssProcessors = [
+    autoprefixer( { browsers: ['last 2 versions', 'ie > 10'] } )
+]
+
+// Clean output folder
+gulp.task('server', function() {
+    browser.init({
+
+        // Inject CSS changes without the page being reloaded
+        injectChanges: true,
+
+        // What to serve
+        server: {
+            baseDir: 'dist'
+        },
+
+        // The port
+        port: 1234
+    });
+
+  // Watch for file changes
+  gulp.watch('src/scss/**/*', gulp.parallel('scss'));
+  gulp.watch('src/js/**/*', gulp.parallel('js'));
+  gulp.watch('src/images/**/*', gulp.parallel('images'));
+  gulp.watch('public/**/*.html', gulp.parallel('inline-scss'));
+});
 
 
-// Compile SCSS files to CSS
-gulp.task("scss", function () {
-    gulp.src("src/scss/**/*.scss")
-        .pipe(sass({
-            outputStyle : "compressed"
-        }))
-        .pipe(autoprefixer({
-            browsers : ["last 20 versions"]
-        }))
-        .pipe(gulp.dest("static/css"))
-})
+// Clean output folder
+gulp.task('clean', function() {
+  return del(['static']);
+});
 
-// Watch asset folder for changes
-gulp.task("watch", ["scss", "images", "js"], function () {
-    gulp.watch("src/scss/**/*", ["scss"])
-    gulp.watch("src/images/**/*", ["images"])
-    gulp.watch("src/js/**/*", ["js"])
-})
+gulp.task('sass-inline', function() {
+    var stream = gulp.src('src/scss/inline.scss')
+        .pipe(sass({ outputStyle: 'expanded' }))
+        .pipe(gulp.dest('build/css/'));
+        return stream;
 
+});
+gulp.task('embed-scss', function() {
+    var stream = gulp.src('src/scss/embedded.scss')
+        .pipe(sass({ outputStyle: 'compressed' }))
+        .pipe(gulp.dest('build/css/'));
+        return stream;
 
-// Compile SCSS files to CSS
-gulp.task("scss", function () {
+});
+gulp.task('inline-scss', function() {
+  var stream = gulp.src('public/*.html')
+      .pipe(inlineCss({
+        applyStyleTags: true,
+        removeStyleTags: false,
+        removeLinkTags: false
+      }))
+      .pipe(gulp.dest('public/'))
+      return stream;
+});
 
-    //Delete our old css files
-    del(["static/css/**/*"])
-    
-    //compile hashed css files
-    gulp.src("src/scss/**/*.scss")
-        .pipe(sass({
-            outputStyle : "compressed"
-        }))
-        .pipe(autoprefixer({
-            browsers : ["last 20 versions"]
-        }))
-        .pipe(hash())
-        .pipe(gulp.dest("static/css"))
-        //Create a hash map
-        .pipe(hash.manifest("hash.json"))
-        //Put the map in the data directory
-        .pipe(gulp.dest("data/css"))
-})
+// Compile and hash SCSS files to CSS
+gulp.task('scss', function() {
+  var stream = gulp.src('src/scss/**/*.scss')
+    .pipe(sass({outputStyle : 'compressed'}))
+    .pipe(gulp.dest('static/css'))
+    return stream;
+});
 
-// Hash images
-gulp.task("images", function () {
-    del(["static/images/**/*"])
-    gulp.src("src/images/**/*")
-        .pipe(hash())
-        .pipe(gulp.dest("static/images"))
-        .pipe(hash.manifest("hash.json"))
-        .pipe(gulp.dest("data/images"))
-})
+// Compile javascript
+gulp.task('js', function() {
+  var stream = gulp.src('src/js/**/*')
+  .pipe(uglify())
+  .pipe(gulp.dest('static/js'))
+  return stream;
+});
 
-// Hash javascript
-gulp.task("js", function () {
-    del(["static/js/**/*"])
-    gulp.src("src/js/**/*")
-        .pipe(hash())
-        .pipe(gulp.dest("static/js"))
-        .pipe(hash.manifest("hash.json"))
-        .pipe(gulp.dest("data/js"))
-})
+// Compile images
+gulp.task('images', function() {
+  var stream = gulp.src('src/images/**/*')
+    .pipe(gulp.dest('static/images'));
+    return stream;
+});
 
-// Set watch as default task
-gulp.task("default", ["watch"])
+// Watch for changes, output
+gulp.task('watch', function() {
+  gulp.watch('src/scss/**/*', gulp.parallel('scss'));
+  gulp.watch('src/js/**/*', gulp.parallel('js'));
+  gulp.watch('src/images/**/*', gulp.parallel('images'));
+  gulp.watch('src/html/**/*', gulp.parallel('inline-scss'));
+});
+
+gulp.task('default', gulp.series('clean', gulp.parallel('scss', 'images', 'js'), 'inline-scss', 'server'));

@@ -1,7 +1,6 @@
-+++
-Author = "Peter Simmons"
-Description = ""
-resources = []
-slug = ""
+---
+title: "{{ replace .Name "-" " " | title }}"
+date: {{ .Date }}
+draft: true
+---
 
-+++
